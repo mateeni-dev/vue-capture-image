@@ -1,0 +1,37 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "**/.*",
+      "**/node_modules/**",
+      "public/",
+      "src/",
+      "babel.config.js",
+      "firebase.json",
+      "vue.config.js",
+      "LICENSE",
+      "package.json",
+      "README.md",
+      "yarn.lock"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=86400"
+          }
+        ]
+      }
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
+  }
+}
