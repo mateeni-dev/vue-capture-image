@@ -13,7 +13,7 @@
     <!-- button -->
     <button
       class="button"
-      @click="proxyClick"
+      @click="proxyClick()"
       :disabled="isUploading"
     >
       Take Picture
@@ -43,7 +43,7 @@
       type="file"
       accept="image/*"
       capture="environment"
-      @change="showPreviewAndPostToEndpoint"
+      @change="showPreviewAndPostToCloudinary($event)"
     >
   </div>
 </template>
@@ -57,7 +57,11 @@ export default {
       // temporary image blob for preview
       imageURL: null,
       // url to POST image to
-      endpointURL: 'https://happydelivery.io/webapi/V1/rcvpht.php',
+      endpointURL: '',
+      // cloudinary upload preset
+      uploadPreset: process.env.VUE_APP_CLOUDINARY_UPLOAD_FOLDER,
+      // cloudinary url to POST image to
+      cloudinaryURL: `https://api.cloudinary.com/v1_1/${process.env.VUE_APP_CLOUDINARY_CLOUD_NAME}/upload`,
       // upload in progress
       isUploading: false,
       // upload state
@@ -129,6 +133,65 @@ export default {
       this.getBase64(file)
         // post base64 encoded string to endpoint
         .then(this.postToEndpoint)
+        // show some useful info, success
+        .then((res) => {
+          console.log('Upload successful!');
+          this.uploadState = `Status: ${res.status}`;
+          // wait duration seconds and clear upload state
+          this.hideUploadState(5);
+        })
+        // show some useful info, if any error
+        .catch((err) => {
+          console.error('Error: ', err);
+          this.uploadState = `Error: ${err.message}`;
+          // wait duration seconds and clear upload state
+          this.hideUploadState(5);
+        });
+    },
+    postToCloudinary(file, uploadPreset) {
+      // create payload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+
+      // show some useful info, start uploading
+      console.log(`Uploading image to cloudinary preset ${uploadPreset}`);
+      // set upload state
+      this.uploadState = 'Uploading...';
+      this.isUploading = true;
+
+      // POST formData
+      return fetch(this.cloudinaryURL, {
+        method: 'POST',
+        body: formData,
+      });
+    },
+    showPreviewAndPostToCloudinary(e) {
+      // get image file
+      const [file] = e.target.files;
+
+      // show some useful info, if no image
+      if (!file) {
+        console.error('You did not select any image!');
+        return;
+      }
+
+      // release memory occupied by previous image file, if any
+      if (this.imageURL) {
+        URL.revokeObjectURL(this.imageURL);
+      }
+
+      // preview image
+      this.imageURL = URL.createObjectURL(file);
+
+      // show some useful info, if no upload preset
+      if (!this.uploadPreset) {
+        console.error('Please configure a cloudinary upload preset!');
+        return;
+      }
+
+      // post file to cloudinary endpoint
+      this.postToCloudinary(file, this.uploadPreset)
         // show some useful info, success
         .then((res) => {
           console.log('Upload successful!');
