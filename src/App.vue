@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import CaptureImage from './components/CaptureImage.vue';
+import CaptureImage from '@/components/CaptureImage.vue';
 
 export default {
   name: 'App',
