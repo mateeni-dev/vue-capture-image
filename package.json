@@ -4,6 +4,7 @@
   "private": true,
   "description": "Test app to capture image with mobile camera.",
   "scripts": {
+    "setup": "yarn upgrade && npx syncyarnlock --save --keepPrefix && yarn install",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
