@@ -36,6 +36,16 @@
       >
     </div>
 
+    <!-- delete button -->
+    <button
+      v-if="publicId"
+      class="button"
+      @click="deleteImage()"
+      :disabled="isUploading"
+    >
+      Delete Image
+    </button>
+
     <!-- file input -->
     <input
       v-show="false"
@@ -62,6 +72,10 @@ export default {
       uploadPreset: process.env.VUE_APP_CLOUDINARY_UPLOAD_FOLDER,
       // cloudinary url to POST image to
       cloudinaryURL: `https://api.cloudinary.com/v1_1/${process.env.VUE_APP_CLOUDINARY_CLOUD_NAME}/upload`,
+      // cloudinary url to DELETE image
+      cloudinaryDeleteURL: `https://api.cloudinary.com/v1_1/${process.env.VUE_APP_CLOUDINARY_CLOUD_NAME}/delete_by_token`,
+      // public ID of the uploaded image
+      publicId: null,
       // upload in progress
       isUploading: false,
       // upload state
@@ -193,9 +207,43 @@ export default {
       // post file to cloudinary endpoint
       this.postToCloudinary(file, this.uploadPreset)
         // show some useful info, success
+        .then((res) => res.json())
         .then((res) => {
           console.log('Upload successful!');
           this.uploadState = `Status: ${res.status}`;
+          this.publicId = res.public_id;
+          // wait duration seconds and clear upload state
+          this.hideUploadState(5);
+        })
+        // show some useful info, if any error
+        .catch((err) => {
+          console.error('Error: ', err);
+          this.uploadState = `Error: ${err.message}`;
+          // wait duration seconds and clear upload state
+          this.hideUploadState(5);
+        });
+    },
+    deleteImage() {
+      // show some useful info, start deleting
+      console.log(`Deleting image with public ID ${this.publicId}`);
+      // set upload state
+      this.uploadState = 'Deleting...';
+      this.isUploading = true;
+
+      // DELETE request
+      fetch(this.cloudinaryDeleteURL, {
+        method: 'POST',
+        body: JSON.stringify({ public_id: this.publicId }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        // show some useful info, success
+        .then((res) => {
+          console.log('Delete successful!');
+          this.uploadState = `Status: ${res.status}`;
+          this.imageURL = null;
+          this.publicId = null;
           // wait duration seconds and clear upload state
           this.hideUploadState(5);
         })
