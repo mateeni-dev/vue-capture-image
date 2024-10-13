@@ -132,7 +132,7 @@ export default {
       // convert image to base64 string
       this.getBase64(file)
         // post base64 encoded string to endpoint
-        .then(this.postToEndpoint)
+        .then(() => this.postToEndpoint())
         // show some useful info, success
         .then((res) => {
           console.log('Upload successful!');
